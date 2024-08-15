@@ -1,0 +1,55 @@
+package com.example.escola.controller;
+
+import com.example.escola.model.Aluno;
+import com.example.escola.service.AlunoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/alunos")
+public class AlunoController {
+
+    @Autowired
+    private AlunoService alunoService;
+
+    @GetMapping
+    public List<Aluno> listarTodos() {
+        return alunoService.listarTodos();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Aluno> buscarPorId(@PathVariable Long id) {
+        Optional<Aluno> aluno = alunoService.buscarPorId(id);
+        return aluno.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Aluno> criar(@RequestBody Aluno aluno) {
+        Aluno novoAluno = alunoService.salvar(aluno);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoAluno);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Aluno> atualizar(@PathVariable Long id, @RequestBody Aluno aluno) {
+        if (!alunoService.buscarPorId(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        aluno.setId(id);
+        Aluno alunoAtualizado = alunoService.salvar(aluno);
+        return ResponseEntity.ok(alunoAtualizado);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        if (!alunoService.buscarPorId(id).isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        alunoService.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
+}
